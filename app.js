@@ -20,8 +20,7 @@ const els = {
   filterStart: document.getElementById("filter-start"),
   filterEnd: document.getElementById("filter-end"),
   applyFilters: document.getElementById("apply-filters"),
-  quickConcordButtons: document.querySelectorAll(".quick-concord-btn"),
-  quickDurhamButtons: document.querySelectorAll(".quick-durham-btn")
+  quickButtons: document.querySelectorAll(".quick-btn")
 };
 
 function setAuthUI(loggedIn) {
@@ -320,7 +319,7 @@ function attachEvents() {
     }
   });
 
-  els.quickConcordButtons.forEach((btn) => {
+  els.quickButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
       const amount = Number(btn.dataset.amount);
       const payload = {
@@ -337,8 +336,7 @@ function attachEvents() {
       }
     });
   });
-
-  els.quickDurhamButtons.forEach((btn) => {
+  els.quickButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
       const amount = Number(btn.dataset.amount);
       const payload = {
