@@ -1,0 +1,9 @@
+{
+  "name": "arrow-financial-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "python3 -m http.server 8888 || python -m SimpleHTTPServer 8888 || npx serve -p 8888 .",
+    "build": "node build.js"
+  }
+}
+

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arrow Financial Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Arrow Financial Tracker</h1>
+        <div id="user-info"></div>
+      </header>
+
+      <section id="auth-section">
+        <h2>Login</h2>
+        <form id="login-form">
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+        <button id="logout-btn" class="secondary" hidden>Logout</button>
+        <div id="auth-error" class="error"></div>
+      </section>
+
+      <section id="controls" hidden>
+        <div class="filters">
+          <label>Type:
+            <select id="filter-type">
+              <option value="">All</option>
+              <option value="Durham Truck">Durham Truck</option>
+              <option value="Concord Truck">Concord Truck</option>
+              <option value="Deposit">Deposit</option>
+              <option value="Credit Card Charge">Credit Card Charge</option>
+            </select>
+          </label>
+          <label>Start Date:
+            <input type="date" id="filter-start" />
+          </label>
+          <label>End Date:
+            <input type="date" id="filter-end" />
+          </label>
+          <button id="apply-filters">Apply Filters</button>
+        </div>
+
+        <div class="quick-add">
+          <h3>Concord Truck Quick-Add</h3>
+          <button data-amount="12800" class="quick-btn">Full 4x8 (+$12,800)</button>
+          <button data-amount="12000" class="quick-btn">Full 4x5 (+$12,000)</button>
+          <button data-amount="12000" class="quick-btn">Half and Half (+$12,000)</button>
+        </div>
+
+        <form id="transaction-form">
+          <h3>Create Transaction</h3>
+          <input type="date" name="date" required />
+          <select name="transactionType" required>
+            <option value="Durham Truck">Durham Truck</option>
+            <option value="Concord Truck">Concord Truck</option>
+            <option value="Deposit">Deposit</option>
+            <option value="Credit Card Charge">Credit Card Charge</option>
+          </select>
+          <input type="number" name="amount" placeholder="Amount (signed)" required />
+          <input type="text" name="notes" placeholder="Notes" />
+          <button type="submit">Create</button>
+        </form>
+      </section>
+
+      <section id="table-section" hidden>
+        <div id="table-error" class="error"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>Drag</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Running Total</th>
+              <th>Taylor</th>
+              <th>Dad</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-body"></tbody>
+        </table>
+      </section>
+    </div>
+  </body>
+</html>
+
