@@ -336,24 +336,7 @@ function attachEvents() {
       }
     });
   });
-  els.quickButtons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const amount = Number(btn.dataset.amount);
-      const payload = {
-        date: getTodayDateBackend(), // Use today's date in DD/MM/YYYY format
-        transactionType: "Durham Truck",
-        amount,
-        notes: btn.textContent
-      };
-      try {
-        await apiFetch("/transactions", { method: "POST", body: JSON.stringify(payload) });
-        await loadTransactions();
-      } catch (err) {
-        showTableError(err.message);
-      }
-    });
-  });
-}
+  
 
 function initializeDateInputs() {
   // Set default date to today for transaction form
