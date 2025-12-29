@@ -260,12 +260,29 @@ async function handleDrop() {
       method: "PATCH",
       body: JSON.stringify({ expectedOrder, orderedIds })
     });
-    await loadTransactions();
+    
+    // Update state.transactions to match new order
+    const transactionMap = new Map(state.transactions.map(t => [t._id, t]));
+    state.transactions = orderedIds.map(id => transactionMap.get(id)).filter(Boolean);
+    
+    // Recalculate and update running totals
+    updateRunningTotals();
   } catch (err) {
     // On conflict, refresh from server
     await loadTransactions();
     showTableError(err.message);
   }
+}
+
+function updateRunningTotals() {
+  const totals = computeRunningTotals(state.transactions);
+  const rows = Array.from(els.transactionsBody.children);
+  rows.forEach((row, idx) => {
+    const totalCell = row.querySelector("td:nth-child(5)"); // 5th column is running total
+    if (totalCell) {
+      totalCell.textContent = totals[idx];
+    }
+  });
 }
 
 function showTableError(msg) {
