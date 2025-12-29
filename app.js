@@ -51,12 +51,41 @@ async function apiFetch(path, options = {}) {
     opts.headers["Authorization"] = `Bearer ${token}`;
   }
   
+  // Get CSRF token from state or localStorage
+  const csrfToken = state.csrfToken || localStorage.getItem("csrfToken");
+  
   const method = (opts.method || "GET").toUpperCase();
-  if (!["GET", "HEAD"].includes(method) && state.csrfToken) {
-    opts.headers["X-CSRF-Token"] = state.csrfToken;
+  if (!["GET", "HEAD"].includes(method) && csrfToken) {
+    opts.headers["X-CSRF-Token"] = csrfToken;
   }
   const res = await fetch(`${API_BASE}${path}`, opts);
   const data = await res.json().catch(() => ({}));
+  
+  // If CSRF error, try to refresh the session and retry once
+  if (!res.ok && data?.error?.code === "CSRF" && !options._retried) {
+    try {
+      // Refresh session to get new CSRF token
+      const refreshData = await fetch(`${API_BASE}/auth/me`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Authorization": token ? `Bearer ${token}` : undefined
+        }
+      }).then(r => r.json());
+      
+      if (refreshData.user && refreshData.csrfToken) {
+        state.user = refreshData.user;
+        state.csrfToken = refreshData.csrfToken;
+        localStorage.setItem("csrfToken", refreshData.csrfToken);
+        
+        // Retry the original request with new CSRF token
+        return apiFetch(path, { ...options, _retried: true });
+      }
+    } catch (refreshErr) {
+      // If refresh fails, continue with original error
+    }
+  }
+  
   if (!res.ok) {
     const message = data?.error?.message || "Request failed";
     throw new Error(message);
@@ -72,10 +101,13 @@ async function login(email, password) {
   state.user = data.user;
   state.csrfToken = data.csrfToken;
   
-  // Store token in localStorage as fallback for mobile browsers that block cookies
+  // Store token and CSRF in localStorage as fallback for mobile browsers that block cookies
   // The backend will check both cookies and Authorization header
   if (data.token) {
     localStorage.setItem("authToken", data.token);
+  }
+  if (data.csrfToken) {
+    localStorage.setItem("csrfToken", data.csrfToken);
   }
   
   setAuthUI(true);
@@ -92,6 +124,7 @@ async function logout() {
   state.csrfToken = null;
   state.transactions = [];
   localStorage.removeItem("authToken");
+  localStorage.removeItem("csrfToken");
   setAuthUI(false);
   renderTransactions();
 }
@@ -430,17 +463,26 @@ async function init() {
   // Initialize date inputs with today's date
   initializeDateInputs();
   
+  // Restore CSRF token from localStorage if available (for mobile fallback)
+  const storedCsrf = localStorage.getItem("csrfToken");
+  if (storedCsrf) {
+    state.csrfToken = storedCsrf;
+  }
+  
   // Try to restore session from existing cookie or localStorage token
   try {
     const data = await apiFetch("/auth/me", { method: "GET" });
     if (data.user && data.csrfToken) {
       state.user = data.user;
       state.csrfToken = data.csrfToken;
+      // Update localStorage with fresh CSRF token
+      localStorage.setItem("csrfToken", data.csrfToken);
       setAuthUI(true);
       await loadTransactions();
     } else {
-      // Clear stale token from localStorage if session is invalid
+      // Clear stale tokens from localStorage if session is invalid
       localStorage.removeItem("authToken");
+      localStorage.removeItem("csrfToken");
       setAuthUI(false);
     }
   } catch (err) {
@@ -448,6 +490,7 @@ async function init() {
     state.user = null;
     state.csrfToken = null;
     localStorage.removeItem("authToken");
+    localStorage.removeItem("csrfToken");
     setAuthUI(false);
   }
 }
