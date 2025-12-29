@@ -210,8 +210,8 @@ async function editTransaction(tx) {
   let amount = Number(prompt("Amount (signed number)", tx.amount));
   if (Number.isNaN(amount)) return;
   
-  // Convert deposit amounts to negative if positive
-  if (type === "Deposit" && amount > 0) {
+  // Convert deposit and credit card charge amounts to negative if positive
+  if ((type === "Deposit" || type === "Credit Card Charge") && amount > 0) {
     amount = -amount;
   }
   
@@ -334,8 +334,8 @@ function attachEvents() {
     const transactionType = form.get("transactionType");
     let amount = Number(form.get("amount"));
     
-    // Convert deposit amounts to negative
-    if (transactionType === "Deposit" && amount > 0) {
+    // Convert deposit and credit card charge amounts to negative
+    if ((transactionType === "Deposit" || transactionType === "Credit Card Charge") && amount > 0) {
       amount = -amount;
     }
     
