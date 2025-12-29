@@ -126,7 +126,7 @@ function renderTransactions() {
       <td>${tx.notes || ""}</td>
       <td>
         <button class="edit-btn">Edit</button>
-        <button class="delete-btn secondary">Delete</button>
+        ${state.user.role === "admin" ? '<button class="delete-btn secondary">Delete</button>' : ''}
       </td>
     `;
 
@@ -138,7 +138,10 @@ function renderTransactions() {
     checkboxTaylor?.addEventListener("change", () => updateCheckbox(tx._id, "confirmationTaylor", checkboxTaylor.checked, checkboxTaylor));
     checkboxDad?.addEventListener("change", () => updateCheckbox(tx._id, "confirmationDad", checkboxDad.checked, checkboxDad));
     tr.querySelector(".edit-btn").addEventListener("click", () => editTransaction(tx));
-    tr.querySelector(".delete-btn").addEventListener("click", () => deleteTransaction(tx._id));
+    const deleteBtn = tr.querySelector(".delete-btn");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", () => deleteTransaction(tx._id));
+    }
 
     addDragHandlers(tr);
     els.transactionsBody.appendChild(tr);
