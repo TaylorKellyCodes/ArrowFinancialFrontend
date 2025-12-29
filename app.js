@@ -94,13 +94,17 @@ async function loadTransactions() {
 }
 
 function computeRunningTotals(transactions) {
+  // Calculate running totals from bottom to top (oldest to newest)
+  // Since transactions are displayed newest first, we reverse, calculate, then reverse back
+  const reversed = [...transactions].reverse();
   const totals = [];
   let acc = 0;
-  transactions.forEach((tx) => {
-    acc += tx.amount;
+  reversed.forEach((tx) => {
+    acc += tx.amount; // Negative amounts will subtract automatically
     totals.push(acc);
   });
-  return totals;
+  // Reverse totals back to match display order (newest first)
+  return totals.reverse();
 }
 
 function renderTransactions() {
@@ -203,8 +207,14 @@ async function editTransaction(tx) {
   if (!date) return;
   const type = prompt("Type", tx.transactionType);
   if (!type) return;
-  const amount = Number(prompt("Amount (signed number)", tx.amount));
+  let amount = Number(prompt("Amount (signed number)", tx.amount));
   if (Number.isNaN(amount)) return;
+  
+  // Convert deposit amounts to negative if positive
+  if (type === "Deposit" && amount > 0) {
+    amount = -amount;
+  }
+  
   const notes = prompt("Notes", tx.notes || "") || "";
   try {
     await apiFetch(`/transactions/${tx._id}`, {
@@ -311,10 +321,18 @@ function attachEvents() {
     e.preventDefault();
     const form = new FormData(els.transactionForm);
     const dateInput = form.get("date");
+    const transactionType = form.get("transactionType");
+    let amount = Number(form.get("amount"));
+    
+    // Convert deposit amounts to negative
+    if (transactionType === "Deposit" && amount > 0) {
+      amount = -amount;
+    }
+    
     const payload = {
       date: inputFormatToDate(dateInput), // Convert from YYYY-MM-DD to DD/MM/YYYY
-      transactionType: form.get("transactionType"),
-      amount: Number(form.get("amount")),
+      transactionType,
+      amount,
       notes: form.get("notes")
     };
     try {
