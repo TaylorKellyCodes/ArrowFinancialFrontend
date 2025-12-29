@@ -262,9 +262,19 @@ function addDragHandlers(row) {
 }
 
 async function handleDrop() {
+  // Check if filters are active - if so, disable reordering
+  const hasFilters = els.filterType.value || els.filterStart.value || els.filterEnd.value;
+  if (hasFilters) {
+    showTableError("Cannot reorder transactions when filters are active. Please clear filters first.");
+    // Reload to reset the order
+    await loadTransactions();
+    return;
+  }
+  
   const rows = Array.from(els.transactionsBody.children);
   const orderedIds = rows.map((r) => r.dataset.id);
   const expectedOrder = state.transactions.map((t) => t._id);
+  
   try {
     await apiFetch("/transactions/reorder", {
       method: "PATCH",
