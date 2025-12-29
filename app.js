@@ -322,9 +322,21 @@ function attachEvents() {
   els.quickButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
       const amount = Number(btn.dataset.amount);
+      
+      // Determine truck type from parent section heading
+      const quickAddSection = btn.closest(".quick-add");
+      const heading = quickAddSection?.querySelector("h3")?.textContent || "";
+      let transactionType = "Concord Truck"; // default
+      
+      if (heading.includes("Durham Truck")) {
+        transactionType = "Durham Truck";
+      } else if (heading.includes("Concord Truck")) {
+        transactionType = "Concord Truck";
+      }
+      
       const payload = {
         date: getTodayDateBackend(), // Use today's date in DD/MM/YYYY format
-        transactionType: "Concord Truck",
+        transactionType,
         amount,
         notes: btn.textContent
       };
