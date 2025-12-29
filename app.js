@@ -423,6 +423,17 @@ async function init() {
   }
 }
 
-attachEvents();
-init();
+// Wait for all resources (including stylesheets) to load before initializing
+// This prevents "Layout was forced before the page was fully loaded" warning
+if (document.readyState === 'complete') {
+  // Page already loaded, initialize immediately
+  attachEvents();
+  init();
+} else {
+  // Wait for window load event (fires after all resources including stylesheets)
+  window.addEventListener('load', () => {
+    attachEvents();
+    init();
+  });
+}
 
