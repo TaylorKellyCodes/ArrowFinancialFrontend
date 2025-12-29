@@ -44,6 +44,13 @@ async function apiFetch(path, options = {}) {
     },
     ...options
   };
+  
+  // Add Authorization header with token from localStorage as fallback for mobile
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    opts.headers["Authorization"] = `Bearer ${token}`;
+  }
+  
   const method = (opts.method || "GET").toUpperCase();
   if (!["GET", "HEAD"].includes(method) && state.csrfToken) {
     opts.headers["X-CSRF-Token"] = state.csrfToken;
@@ -64,15 +71,27 @@ async function login(email, password) {
   });
   state.user = data.user;
   state.csrfToken = data.csrfToken;
+  
+  // Store token in localStorage as fallback for mobile browsers that block cookies
+  // The backend will check both cookies and Authorization header
+  if (data.token) {
+    localStorage.setItem("authToken", data.token);
+  }
+  
   setAuthUI(true);
   await loadTransactions();
 }
 
 async function logout() {
-  await apiFetch("/auth/logout", { method: "POST" });
+  try {
+    await apiFetch("/auth/logout", { method: "POST" });
+  } catch (err) {
+    // Continue with logout even if request fails
+  }
   state.user = null;
   state.csrfToken = null;
   state.transactions = [];
+  localStorage.removeItem("authToken");
   setAuthUI(false);
   renderTransactions();
 }
@@ -411,7 +430,7 @@ async function init() {
   // Initialize date inputs with today's date
   initializeDateInputs();
   
-  // Try to restore session from existing cookie
+  // Try to restore session from existing cookie or localStorage token
   try {
     const data = await apiFetch("/auth/me", { method: "GET" });
     if (data.user && data.csrfToken) {
@@ -419,9 +438,16 @@ async function init() {
       state.csrfToken = data.csrfToken;
       setAuthUI(true);
       await loadTransactions();
+    } else {
+      // Clear stale token from localStorage if session is invalid
+      localStorage.removeItem("authToken");
+      setAuthUI(false);
     }
   } catch (err) {
-    // Not logged in, that's fine
+    // Not logged in, that's fine - clear any stale state
+    state.user = null;
+    state.csrfToken = null;
+    localStorage.removeItem("authToken");
     setAuthUI(false);
   }
 }
