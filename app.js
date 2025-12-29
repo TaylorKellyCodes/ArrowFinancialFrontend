@@ -337,6 +337,7 @@ function attachEvents() {
     });
   });
   
+}
 
 function initializeDateInputs() {
   // Set default date to today for transaction form
